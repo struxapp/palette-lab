@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Palette Lab · OKLCH colour palette generator</title>
+    <meta
+      name="description"
+      content="Generate harmonious five-colour palettes in OKLCH, lock the colours you love, check WCAG contrast and export CSS variables, JSON or Tailwind."
+    />
+    <meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#131317" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <a class="skip-link" href="#swatches">Skip to the palette</a>
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Palette Lab, start again">
+        <span class="brand-mark" id="brand-mark"></span>
+        <span class="brand-name">Palette Lab</span>
+      </a>
+      <div class="toolbar" role="toolbar" aria-label="Palette actions">
+        <div class="field-inline">
+          <label for="harmony" class="field-label">Harmony</label>
+          <select id="harmony" class="select">
+            <option value="auto">Auto</option>
+            <option value="analogous">Analogous</option>
+            <option value="complementary">Complementary</option>
+            <option value="triadic">Triadic</option>
+            <option value="split">Split complementary</option>
+            <option value="monochrome">Monochrome</option>
+          </select>
+        </div>
+        <button type="button" class="btn btn-icon" id="undo" aria-label="Undo" title="Undo (Ctrl+Z)"></button>
+        <button type="button" class="btn btn-icon" id="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)"></button>
+        <button type="button" class="btn btn-primary" id="generate">
+          <span class="btn-icon-slot" id="generate-icon"></span>
+          <span>Generate</span>
+          <kbd class="kbd">Space</kbd>
+        </button>
+        <button type="button" class="btn btn-icon" id="share" aria-label="Copy share link" title="Copy share link"></button>
+        <button type="button" class="btn btn-icon" id="theme" aria-label="Switch to dark theme" title="Switch theme"></button>
+      </div>
+    </header>
+
+    <main class="page">
+      <h1 class="sr-only">Palette Lab</h1>
+      <p class="harmony-note" id="harmony-note" aria-live="polite"></p>
+      <section class="swatches" id="swatches" aria-label="Palette of five colours" tabindex="-1"></section>
+
+      <div class="workbench">
+        <section class="panel editor" aria-labelledby="editor-title">
+          <header class="panel-head">
+            <h2 id="editor-title" class="panel-title">Edit colour</h2>
+            <span class="chip" id="editor-chip"></span>
+          </header>
+          <div class="plane-wrap">
+            <canvas id="plane" class="plane" width="200" height="120" role="img" aria-label="Lightness and chroma plane at the current hue"></canvas>
+            <span class="plane-marker" id="plane-marker" aria-hidden="true"></span>
+            <span class="plane-axis plane-axis-x" aria-hidden="true">Chroma</span>
+            <span class="plane-axis plane-axis-y" aria-hidden="true">Lightness</span>
+          </div>
+          <div class="sliders">
+            <div class="slider">
+              <label for="slider-l">Lightness</label>
+              <output id="out-l" for="slider-l"></output>
+              <input type="range" id="slider-l" min="0" max="100" step="0.1" />
+            </div>
+            <div class="slider">
+              <label for="slider-c">Chroma</label>
+              <output id="out-c" for="slider-c"></output>
+              <input type="range" id="slider-c" min="0" max="0.37" step="0.001" />
+            </div>
+            <div class="slider">
+              <label for="slider-h">Hue</label>
+              <output id="out-h" for="slider-h"></output>
+              <input type="range" id="slider-h" min="0" max="360" step="0.5" />
+            </div>
+          </div>
+          <p class="gamut-note" id="gamut-note" hidden>Outside sRGB: shown at the nearest displayable chroma.</p>
+          <div class="values">
+            <div class="value-row">
+              <label for="hex-input" class="value-label">HEX</label>
+              <input id="hex-input" class="value-input mono" type="text" spellcheck="false" autocomplete="off" aria-describedby="hex-error" />
+              <button type="button" class="btn btn-ghost btn-sm" data-copy="hex" aria-label="Copy HEX value"></button>
+            </div>
+            <p class="field-error" id="hex-error" hidden>Use #rgb or #rrggbb.</p>
+            <div class="value-row">
+              <span class="value-label">RGB</span>
+              <code class="value-text mono" id="rgb-text"></code>
+              <button type="button" class="btn btn-ghost btn-sm" data-copy="rgb" aria-label="Copy RGB value"></button>
+            </div>
+            <div class="value-row">
+              <span class="value-label">OKLCH</span>
+              <code class="value-text mono" id="oklch-text"></code>
+              <button type="button" class="btn btn-ghost btn-sm" data-copy="oklch" aria-label="Copy OKLCH value"></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel contrast" aria-labelledby="contrast-title">
+          <header class="panel-head">
+            <h2 id="contrast-title" class="panel-title">Contrast</h2>
+            <span class="chip">WCAG 2</span>
+          </header>
+          <div class="pair">
+            <div class="field">
+              <label for="fg" class="field-label">Text</label>
+              <select id="fg" class="select"></select>
+            </div>
+            <button type="button" class="btn btn-icon btn-ghost" id="swap" aria-label="Swap text and background" title="Swap"></button>
+            <div class="field">
+              <label for="bg" class="field-label">Background</label>
+              <select id="bg" class="select"></select>
+            </div>
+          </div>
+          <div class="sample" id="sample">
+            <p class="sample-big">Aa</p>
+            <p class="sample-text">Colour is a power which directly influences the soul.</p>
+          </div>
+          <div class="ratio-row">
+            <p class="ratio"><span id="ratio-value">0</span><span class="ratio-unit">:1</span></p>
+            <ul class="badges" id="badges" aria-label="WCAG results"></ul>
+          </div>
+          <h3 class="subhead" id="matrix-title">Every pair</h3>
+          <div class="matrix" id="matrix"></div>
+        </section>
+
+        <section class="panel preview-panel" aria-labelledby="preview-title">
+          <header class="panel-head">
+            <h2 id="preview-title" class="panel-title">Live preview</h2>
+            <span class="chip">Your palette on a page</span>
+          </header>
+          <div class="mock" id="mock" aria-label="Example page styled with the palette" role="img">
+            <div class="mock-nav">
+              <span class="mock-logo"><span class="mock-dot"></span>Northwind</span>
+              <span class="mock-links"><span>Work</span><span>Studio</span><span>Journal</span></span>
+            </div>
+            <div class="mock-hero">
+              <p class="mock-eyebrow">Spring collection</p>
+              <p class="mock-title">Make every colour count.</p>
+              <p class="mock-body">Five tones, one mood: headings, surfaces, actions and accents that belong together.</p>
+              <div class="mock-actions">
+                <span class="mock-btn mock-btn-primary">Get started</span>
+                <span class="mock-btn mock-btn-ghost">See examples</span>
+              </div>
+            </div>
+            <div class="mock-cards">
+              <div class="mock-card">
+                <p class="mock-card-label">Visitors</p>
+                <p class="mock-card-value">12.4k</p>
+                <div class="mock-bars"><span></span><span></span><span></span><span></span><span></span></div>
+              </div>
+              <div class="mock-card mock-card-accent">
+                <p class="mock-card-label">Conversion</p>
+                <p class="mock-card-value">4.8%</p>
+                <span class="mock-tag">+12% this week</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel export" aria-labelledby="export-title">
+        <header class="panel-head">
+          <h2 id="export-title" class="panel-title">Export</h2>
+          <div class="tabs" role="tablist" aria-label="Export format" id="export-tabs"></div>
+        </header>
+        <div class="code-wrap" role="tabpanel" id="export-panel" tabindex="0">
+          <pre class="code mono"><code id="export-code"></code></pre>
+          <button type="button" class="btn btn-sm copy-code" id="copy-export"></button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        <kbd class="kbd">Space</kbd> new palette · <kbd class="kbd">1</kbd>–<kbd class="kbd">5</kbd> pick a colour ·
+        <kbd class="kbd">L</kbd> lock it · <kbd class="kbd">C</kbd> copy its hex
+      </p>
+      <p>Colours are generated in OKLCH and mapped into sRGB. Made by Strux.</p>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
