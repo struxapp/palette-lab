@@ -349,11 +349,40 @@ button {
   padding: 0 28px;
 }
 
-.harmony-note {
-  font-size: 13px;
-  color: var(--muted);
+/* The note under the header, with the link to the editor at its right end: one 20px line, so the palette below starts
+   where it did without the link. */
+.page-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: 16px;
   margin: 2px 2px 10px;
   min-height: 20px;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.harmony-note {
+  color: var(--muted);
+  margin: 0;
+}
+
+.jump-link {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.jump-link:focus-visible {
+  outline-offset: 3px;
+}
+
+.jump-link:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* ---------- swatches ---------- */
@@ -507,20 +536,24 @@ button {
   height: 14px;
 }
 
+/* The colour being edited is marked by its "Editing" pill alone, inside the colour (a narrow window, where the pill does
+   not fit, marks it with a bar inside its left edge). */
 .swatch.is-selected .swatch-editing {
   display: inline-flex;
 }
 
-.swatch.is-selected::after {
-  content: '';
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 0;
-  height: 5px;
-  border-radius: 5px 5px 0 0;
-  background: var(--on);
-  opacity: 0.9;
+/* Until the person picks a colour or uses the editor, no colour is marked. */
+.swatches.is-idle .swatch.is-selected .swatch-editing,
+.swatches.is-idle .swatch.is-selected::after {
+  display: none;
+}
+
+/* On a wide window the palette fills the first screen (down to 10px above its bottom, inside the gap before the
+   tools) and the editor, contrast and preview follow below it, so the first screen never ends inside a tool. */
+@media (min-width: 1121px) and (min-height: 600px) {
+  .swatches {
+    height: max(400px, calc(100vh - 110px));
+  }
 }
 
 .swatches.is-fresh .swatch-info {
@@ -1358,13 +1391,15 @@ input[type='range']:focus-visible::-moz-range-thumb {
   }
 
   .swatch.is-selected::after {
-    left: 0;
-    right: auto;
+    content: '';
+    position: absolute;
+    left: 8px;
     top: 18px;
     bottom: 18px;
     width: 5px;
-    height: auto;
-    border-radius: 0 5px 5px 0;
+    border-radius: 5px;
+    background: var(--on);
+    opacity: 0.9;
   }
 
   .mock-links {

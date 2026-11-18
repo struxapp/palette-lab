@@ -192,10 +192,37 @@ const swatchViews: SwatchView[] = state.colors.map((_, i) => {
     rgb: q('.swatch-rgb'),
   };
   view.copy.innerHTML = icons.copy;
-  view.select.addEventListener('click', () => selectSwatch(i));
+  view.select.addEventListener('click', () => {
+    selectSwatch(i);
+    revealEditor();
+  });
   view.lock.addEventListener('click', () => toggleLock(i));
   view.copy.addEventListener('click', () => void copyText(hexOf(i), hexOf(i).toUpperCase()));
   return view;
+});
+
+// The palette opens on its own: no colour is marked as being edited until the person picks one or uses the editor.
+els.swatches.classList.add('is-idle');
+const wake = (): void => els.swatches.classList.remove('is-idle');
+document.querySelector('.workbench')?.addEventListener('input', wake);
+document.querySelector('.workbench')?.addEventListener('pointerdown', wake);
+
+// On a wide window the palette fills the first screen and the editor follows it; a colour clicked brings the editor into
+// view when it is below the window.
+const editorPanel = document.querySelector<HTMLElement>('.panel.editor');
+function revealEditor(always = false): void {
+  if (!editorPanel || (!always && editorPanel.getBoundingClientRect().top < window.innerHeight - 120)) return;
+  editorPanel.scrollIntoView({block: 'start', behavior: reducedMotion.matches ? 'auto' : 'smooth'});
+}
+
+// "Edit and check contrast" under the header takes the person to the editor, and keyboard focus with it.
+document.getElementById('jump-editor')?.addEventListener('click', (event) => {
+  event.preventDefault();
+  revealEditor(true);
+  const title = document.getElementById('editor-title');
+  if (!title) return;
+  title.tabIndex = -1;
+  title.focus({preventScroll: true});
 });
 
 function renderSwatches(): void {
@@ -224,6 +251,7 @@ function renderSwatches(): void {
 }
 
 function selectSwatch(i: number): void {
+  wake();
   state.selected = i;
   renderSwatches();
   renderEditor(true);
